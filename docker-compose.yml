@@ -1,0 +1,57 @@
+version: "3.1"
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: data_warehouse
+    environment:
+      POSTGRES_DB: data_warehouse
+      POSTGRES_USER: engineer
+      POSTGRES_PASSWORD: pass
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql:/docker-entrypoint-initdb.d
+    healthcheck:
+     test: ["CMD-SHELL", "pg_isready -U engineer -d data_warehouse"]
+     interval: 10s
+     timeout: 5s
+     retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin_ui
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: pass
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "8080:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+
+  etl:
+    build: .
+    container_name: etl_processor
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: data_warehouse
+      DB_USER: engineer
+      DB_PASSWORD: pass
+    volumes:
+      - ./data:/app/data
+      - ./src:/app/src
+      - ./logs:/app/logs
+    depends_on:
+      - postgres
+    command: tail -f /dev/null
+
+volumes: 
+  postgres_data:
+  pgadmin_data:
