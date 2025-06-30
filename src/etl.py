@@ -22,7 +22,7 @@ def read_csv(spark, file_path):
     df.show(5)
 
     print("Types des colonnes : \n")
-    df.printShema()
+    df.printSchema()
 
     return df
 
@@ -30,10 +30,10 @@ def main():
     spark = create_spark_session()
 
     try:
-        df = read_csv(spark, "../data/raw/data_2022_nov.csv")
+        df = read_csv(spark, "data/raw/data_2022_nov.csv")
         print("Lecture reussie !")
-    except _ as e:
-        print ("Erreur.")
+    except Exception as e:
+        print (f"{type(e).__name__} : {e}")
 
 if __name__ == "__main__":
     main()
